@@ -22,7 +22,20 @@ button{padding:15px;margin:10px;color:white;border:none;}
 <input type="email" id="email" placeholder="Enter Email">
 <input type="password" id="password" placeholder="Password">
 <button onclick="register()">Login/Register</button>
- 
+ <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
+    const btn = document.getElementById('login-btn');
+
+    function checkInputs() {
+        btn.disabled = !(username.value && password.value);
+    }
+
+    username.addEventListener('input', checkInputs);
+    password.addEventListener('input', checkInputs);
+});
+</script>
 
 <br><br>
 
