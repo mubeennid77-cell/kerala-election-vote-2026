@@ -2,102 +2,91 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Kerala Election Vote</title>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+<title>Kerala Election Vote 2026</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body{text-align:center;font-family:Arial;}
-button{padding:15px;margin:10px;color:white;border:none;}
-.udf{background:blue;}
-.ldf{background:red;}
-.bjp{background:orange;}
+body {
+font-family: Arial;
+text-align: center;
+background: #f5f5f5;
+padding: 30px;
+}
+
+h1 {
+margin-bottom: 30px;
+}
+
+button {
+padding: 15px 30px;
+margin: 10px;
+border: none;
+font-size: 18px;
+color: white;
+cursor: pointer;
+border-radius: 8px;
+}
+
+.udf { background: blue; }
+.ldf { background: red; }
+.bjp { background: orange; }
+
+#chartContainer {
+width: 80%;
+margin: auto;
+margin-top: 40px;
+}
 </style>
 </head>
 <body>
 
 <h1>2026 Kerala Legislative Assembly Election Online Vote</h1>
 
-<input type="email" id="email" placeholder="Enter Email">
-<input type="password" id="password" placeholder="Password">
-<button onclick="register()">Login/Register</button>
-<script>
-const email = document.querySelector("input[type='email']");
-const password = document.querySelector("input[type='password']");
-const btn = document.querySelector("button");
-
-function checkInputs(){
-  if(email.value && password.value){
-    btn.disabled = false;
-  } else {
-    btn.disabled = true;
-  }
-}
-
-email.addEventListener("input", checkInputs);
-password.addEventListener("input", checkInputs);
-</script>
-
-<br><br>
-
 <button class="udf" onclick="vote('UDF')">UDF</button>
 <button class="ldf" onclick="vote('LDF')">LDF</button>
 <button class="bjp" onclick="vote('BJP')">BJP</button>
 
-<canvas id="chart"></canvas>
+<div id="chartContainer">
+<canvas id="voteChart"></canvas>
+</div>
 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-const firebaseConfig = {
-apiKey: "YOUR_API_KEY",
-authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_PROJECT_ID"
+<script>
+let votes = JSON.parse(localStorage.getItem("votes")) || {
+UDF: 0,
+LDF: 0,
+BJP: 0
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-window.register = async function() {
-let email=document.getElementById("email").value;
-let password=document.getElementById("password").value;
-
-try {
-await signInWithEmailAndPassword(auth,email,password);
-} catch {
-await createUserWithEmailAndPassword(auth,email,password);
-}
-alert("Logged in successfully");
+function vote(party) {
+votes[party]++;
+localStorage.setItem("votes", JSON.stringify(votes));
+updateChart();
 }
 
-window.vote = async function(party) {
-const user = auth.currentUser;
-if (!user) {
-alert("Login first");
-return;
+const ctx = document.getElementById('voteChart').getContext('2d');
+
+const voteChart = new Chart(ctx, {
+type: 'bar',
+data: {
+labels: ['UDF', 'LDF', 'BJP'],
+datasets: [{
+label: 'Votes',
+data: [votes.UDF, votes.LDF, votes.BJP]
+}]
+},
+options: {
+responsive: true
 }
+});
 
-const voterRef = doc(db,"voters",user.email);
-const voterSnap = await getDoc(voterRef);
-
-if (voterSnap.exists()) {
-alert("You already voted.");
-return;
+function updateChart() {
+voteChart.data.datasets[0].data = [
+votes.UDF,
+votes.LDF,
+votes.BJP
+];
+voteChart.update();
 }
-
-await setDoc(voterRef,{voted:true,party:party});
-
-const partyRef = doc(db,"votes",party);
-await updateDoc(partyRef,{count:increment(1)});
-
-alert("Vote submitted successfully!");
-}
-
 </script>
+
 </body>
 </html>
